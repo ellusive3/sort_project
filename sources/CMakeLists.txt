@@ -40,5 +40,6 @@ target_link_libraries(${TARGET} PRIVATE
 target_compile_options(${TARGET} PRIVATE
     -std=c++11
     -stdlib=libc++
+    -g3
 )
 ENDIF()

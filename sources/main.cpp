@@ -1,3 +1,13 @@
+/**
+    @file
+	Основной файл программы.
+	Здесь происходит создание окна а также потока для его отрисовки;
+	Содание объектов алгоритмов сортировки и поочередного их запуска;
+    @author
+	Zyukov Alexander Vadimovich (ellusive)
+    @date
+	2020 April 25
+*/
 #include <stdafx.h>
 #include <Graphics.hpp>
 #include <SortAlgorithm.h>
@@ -11,12 +21,15 @@
 #endif
 
 
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 800
+#define WINDOW_WIDTH 1900
+#define WINDOW_HEIGHT 1900
 #define ARRAY_SIZE WINDOW_WIDTH / 4
 #define LINE_THICKNESS 4
 //#define DEBUG__
 
+/**
+    Функция для отрисовки массива элементов в окне программы
+*/
 void UpdateWindowImpl(sf::RectangleShape ** array, size_t size, Sort::AppEnv & environment)
 {
 	while (!(*environment.GetCancelled())) {
@@ -26,6 +39,7 @@ void UpdateWindowImpl(sf::RectangleShape ** array, size_t size, Sort::AppEnv & e
         merges count and accessec count
  */
 #ifndef WIN32
+/*
         sf::Font font;
         if (font.loadFromFile("fonts/ArialRegular.ttf")) {
             sf::Text algorihmName;
@@ -48,31 +62,44 @@ void UpdateWindowImpl(sf::RectangleShape ** array, size_t size, Sort::AppEnv & e
             accessesCount.setStyle(sf::Text::Underlined);
             accessesCount.setString("99999");
             accessesCount.setPosition(sf::Vector2f(algorihmName.getPosition().x, mergesCount.getPosition().y + mergesCount.getCharacterSize() + 10));
-            window->draw(algorihmName);
-            window->draw(mergesCount);
-            window->draw(accessesCount);
+            environment.GetWindow()->draw(algorihmName);
+            environment.GetWindow()->draw(mergesCount);
+            environment.GetWindow()->draw(accessesCount);
         }
+*/
 #endif
+		// По очереди перебираем все элементы массива и добавляем их на отрисовку
 		for (size_t i = 0; i < size; i++) {
 			{
+				// Обязательно должен быть мьютекс для доступа к текущему элементу
+				// сортировки
+				assert(environment.GetLockElementMutex() != nullptr);
 				std::lock_guard<std::mutex> lock(*environment.GetLockElementMutex());
 				auto tmp = (*(array + i));
+				// Обязательно должен быть указатель на текущий элемент сортировки
 				assert(environment.GetLockElement() != nullptr);
-				assert(environment.GetLockElementMutex() != nullptr);
+				// Проверяем нужно ли красить линию красным (если этот элемент сейчас в обработке)
 				if (*environment.GetLockElement() != -1 && (int)tmp->getPosition().x == *environment.GetLockElement())
 					tmp->setFillColor(sf::Color::Red);
 				else
 					tmp->setFillColor(sf::Color::White);
 			}
+			// Рисуем линию в окне
 			environment.GetWindow()->draw(*(*(array + i)));
 		}
+		// Отображаем все элементы из буффера в окно
 		environment.GetWindow()->display();
 	}
-	environment.GetWindow()->setActive(false);
+    // Отдаем управление окном родительскому потоку
+    environment.GetWindow()->setActive(false);
 }
 
+/**
+    Функция для обновления рандомных значений массива
+*/
 void RefreshArray(sf::RectangleShape ** array, size_t size) {
 	for (size_t i = 0; i < size; i++)
+		// Добавляем линию с рандомной высотой в пределах окна
 		array[i]->setSize(sf::Vector2f(1, -std::rand() % WINDOW_HEIGHT));
 }
 
@@ -81,33 +108,39 @@ int main(void)
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
 	::ShowWindow(::GetConsoleWindow(), SW_HIDE);
 #endif
-
+	// Поток для отрисовки окна
 	std::thread _renderThread;
+	// Поток для сортировки массива
 	std::thread _sortThread;
-	std::mutex currentElementLock;
+	// Окружение приложения
 	Sort::AppEnv environment(WINDOW_WIDTH, WINDOW_HEIGHT);
+	// Массив значений
 	sf::RectangleShape * arr[ARRAY_SIZE];
+	// Заполняем массив рандомными (в пределах высоты окна) значениями
 	for (size_t i = 0; i < ARRAY_SIZE; i++) {
 		// Создаем новый прямоугольник (выделяем память)
 		arr[i] = new sf::RectangleShape(sf::Vector2f(LINE_THICKNESS, -std::rand() % WINDOW_HEIGHT));
 		arr[i]->setFillColor(sf::Color::White);
+		// Указываем положение с учетом толщины линии
 		arr[i]->setPosition(i * LINE_THICKNESS, WINDOW_HEIGHT);
 	}
+	// Отдаем управление окном в поток для отрисовки
 	environment.GetWindow()->setActive(false);
+	// Создаем и запускаем поток для отрисовки окна
 	_renderThread = std::thread(&UpdateWindowImpl, arr, (size_t) ARRAY_SIZE, std::ref(environment));
 	while (environment.GetWindow()->isOpen()) {
-        sf::Event evnt;
-        while (environment.GetWindow()->pollEvent(evnt)) {
-            switch (evnt.type) {
-                case sf::Event::Closed: {
-					environment.GetWindow()->close();
+    	    sf::Event evnt;
+	    while (environment.GetWindow()->pollEvent(evnt)) {
+	    switch (evnt.type) {
+		case sf::Event::Closed: {
+		    environment.GetWindow()->close();
                     break;
                 }
                 case sf::Event::Resized: {
                     sf::Vector2u size;
                     size.x = evnt.size.width;
                     size.y = evnt.size.height;
-					environment.GetWindow()->setSize(size);
+		    environment.GetWindow()->setSize(size);
                     break;
                 }
                 default:
@@ -124,16 +157,18 @@ int main(void)
         algs.push_back(static_cast< Sort::Algorithm * >(&shell));
 		Sort::GnomeSort gnome = Sort::GnomeSort(&environment);
         algs.push_back(static_cast< Sort::Algorithm * >(&gnome));
+	// По очереди запускаем все алгоритмы из вектора
         for (auto alg : algs) {
             _sortThread = std::thread(&Sort::Algorithm::Sort, alg, arr, ARRAY_SIZE);
             if (_sortThread.joinable())
                 _sortThread.join();
+                // Перемешиваем массив
             RefreshArray(arr, ARRAY_SIZE);
         }
-        getchar();
         break;
 	}
 	*environment.GetCancelled() = true;
+	// Дожидаемся пока завершится поток для отрисовки
 	if (_renderThread.joinable())
 		_renderThread.join();
 

@@ -1,41 +1,46 @@
 #include <stdafx.h>
 #include <SortAlgorithm.h>
 
+/**
+    @file
+	Файл реализации алгоритмов сортировки
+    @author
+	Zyukov Alexander Vadimovich (ellusive)
+    @date
+	2020 April 25
+*/
+
 namespace Sort {
 
 	Algorithm::Algorithm()
 	{ 
-		environment->SetCurrentAlgName("none");
-		environment->ResetAccessCount();
-		environment->ResetMergeCount();
+	    environment->SetCurrentAlgName("none");
+	    environment->ResetAccessCount();
+	    environment->ResetMergeCount();
 	}
 
 	Algorithm::Algorithm(std::string const & name)
-	{ 
-		environment->SetCurrentAlgName(name);
-		environment->ResetAccessCount();
-		environment->ResetMergeCount();
-	}
-
-	Algorithm::Algorithm(Sort::AppEnv * _environment)
 	{
-		this->environment = _environment;
+	    algName = name;
 	}
 
 	void Algorithm::PrintFinalInfo()
 	{
-		printf("\n**********\n");
-		printf("Sort algorithm name: %s\n", GetName().c_str());
-		printf("Merges count: %d\n", GetMergeCount());
-		printf("Accesses count: %d\n", GetAccessCount());
-		printf("\n**********\n");
+	    printf("\n**********\n");
+	    printf("Sort algorithm name: %s\n", GetName().c_str());
+	    printf("Merges count: %d\n", GetMergeCount());
+	    printf("Accesses count: %d\n", GetAccessCount());
+	    printf("\n**********\n");
 	}
 
 	BubbleSort::BubbleSort(Sort::AppEnv * _environment) :
 		Algorithm("Bubble Sort")
 	{
-		assert(_environment != nullptr);
-		this->environment = _environment;
+	    assert(_environment != nullptr);
+	    this->environment = _environment;
+	    environment->SetCurrentAlgName("Bubble Sort");
+	    environment->ResetAccessCount();
+	    environment->ResetMergeCount();
 	}
 
 	void BubbleSort::Sort(sf::RectangleShape ** array, size_t size)
@@ -68,14 +73,17 @@ namespace Sort {
 	QuickSort::QuickSort(Sort::AppEnv * _environment) :
 		Algorithm("Quick Sort")
 	{
-		assert(_environment != nullptr);
-		this->environment = _environment;
+	    assert(_environment != nullptr);
+	    this->environment = _environment;
+	    environment->SetCurrentAlgName("Quick Sort");
+	    environment->ResetAccessCount();
+	    environment->ResetMergeCount();
 	}
 
 	void QuickSort::Sort(sf::RectangleShape ** array, size_t size)
 	{
-		SortImpl(array, 0, size - 1);
-		this->PrintFinalInfo();
+	    SortImpl(array, 0, size - 1);
+	    this->PrintFinalInfo();
 	}
 
 	void QuickSort::SortImpl(sf::RectangleShape ** array, size_t low, size_t high)
@@ -117,8 +125,11 @@ namespace Sort {
 	ShellSort::ShellSort(Sort::AppEnv * _environment) :
 		Algorithm("Shell Sort")
 	{
-		assert(_environment != nullptr);
-		this->environment = _environment;
+	    assert(_environment != nullptr);
+	    this->environment = _environment;
+	    environment->SetCurrentAlgName("Shell Sort");
+	    environment->ResetAccessCount();
+	    environment->ResetMergeCount();
 	}
 
 	void ShellSort::Sort(sf::RectangleShape ** array, size_t size)
@@ -164,8 +175,11 @@ namespace Sort {
 	GnomeSort::GnomeSort(Sort::AppEnv * _environment) :
 		Algorithm("Gnome Sort")
 	{
-		assert(_environment != nullptr);
-		this->environment = _environment;
+	    assert(_environment != nullptr);
+	    this->environment = _environment;
+	    environment->SetCurrentAlgName("Gnome Sort");
+	    environment->ResetAccessCount();
+	    environment->ResetMergeCount();
 	}
 
 	void GnomeSort::Sort(sf::RectangleShape ** array, size_t size)
