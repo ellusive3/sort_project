@@ -3,6 +3,7 @@ SET(TARGET sort_project_main)
 add_executable(${TARGET}
     stdafx.cpp
     SortAlgorithm.cpp
+	AppEnv.cpp
     main.cpp
 )
 

@@ -1,6 +1,7 @@
 #include <stdafx.h>
 #include <Graphics.hpp>
 #include <SortAlgorithm.h>
+#include <AppEnv.h>
 #include <future>
 #include <vector>
 #include <filesystem>
@@ -10,20 +11,21 @@
 #endif
 
 
-#define WINDOW_WIDTH 1920
-#define WINDOW_HEIGHT 1920
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 800
 #define ARRAY_SIZE WINDOW_WIDTH / 4
 #define LINE_THICKNESS 4
 //#define DEBUG__
 
-void UpdateWindowImpl(bool * cancell, sf::RenderWindow * window, sf::RectangleShape ** array, size_t size, std::mutex * _lock, int * lockElement)
+void UpdateWindowImpl(sf::RectangleShape ** array, size_t size, Sort::AppEnv & environment)
 {
-	while (!(*cancell)) {
-		window->clear();
+	while (!(*environment.GetCancelled())) {
+		environment.GetWindow()->clear();
 /*
         Create a font and texts to display algorithm name,
         merges count and accessec count
  */
+#ifndef WIN32
         sf::Font font;
         if (font.loadFromFile("fonts/ArialRegular.ttf")) {
             sf::Text algorihmName;
@@ -50,22 +52,23 @@ void UpdateWindowImpl(bool * cancell, sf::RenderWindow * window, sf::RectangleSh
             window->draw(mergesCount);
             window->draw(accessesCount);
         }
+#endif
 		for (size_t i = 0; i < size; i++) {
 			{
-				std::lock_guard<std::mutex> lock(*_lock);
+				std::lock_guard<std::mutex> lock(*environment.GetLockElementMutex());
 				auto tmp = (*(array + i));
-				assert(lockElement != nullptr);
-				assert(_lock != nullptr);
-				if (*lockElement != -1 && (int)tmp->getPosition().x == *lockElement)
+				assert(environment.GetLockElement() != nullptr);
+				assert(environment.GetLockElementMutex() != nullptr);
+				if (*environment.GetLockElement() != -1 && (int)tmp->getPosition().x == *environment.GetLockElement())
 					tmp->setFillColor(sf::Color::Red);
 				else
 					tmp->setFillColor(sf::Color::White);
 			}
-			window->draw(*(*(array + i)));
+			environment.GetWindow()->draw(*(*(array + i)));
 		}
-		window->display();
+		environment.GetWindow()->display();
 	}
-	window->setActive(false);
+	environment.GetWindow()->setActive(false);
 }
 
 void RefreshArray(sf::RectangleShape ** array, size_t size) {
@@ -82,9 +85,7 @@ int main(void)
 	std::thread _renderThread;
 	std::thread _sortThread;
 	std::mutex currentElementLock;
-	bool shouldBeCancell = false;
-	int currentElement = -1;
-	sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Sort window", sf::Style::Close);
+	Sort::AppEnv environment(WINDOW_WIDTH, WINDOW_HEIGHT);
 	sf::RectangleShape * arr[ARRAY_SIZE];
 	for (size_t i = 0; i < ARRAY_SIZE; i++) {
 		// Создаем новый прямоугольник (выделяем память)
@@ -92,21 +93,21 @@ int main(void)
 		arr[i]->setFillColor(sf::Color::White);
 		arr[i]->setPosition(i * LINE_THICKNESS, WINDOW_HEIGHT);
 	}
-	window.setActive(false);
-	_renderThread = std::thread(&UpdateWindowImpl, &shouldBeCancell, &window, arr, (size_t) ARRAY_SIZE, &currentElementLock, &currentElement);
-	while (window.isOpen()) {
+	environment.GetWindow()->setActive(false);
+	_renderThread = std::thread(&UpdateWindowImpl, arr, (size_t) ARRAY_SIZE, std::ref(environment));
+	while (environment.GetWindow()->isOpen()) {
         sf::Event evnt;
-        while (window.pollEvent(evnt)) {
+        while (environment.GetWindow()->pollEvent(evnt)) {
             switch (evnt.type) {
                 case sf::Event::Closed: {
-                    window.close();
+					environment.GetWindow()->close();
                     break;
                 }
                 case sf::Event::Resized: {
                     sf::Vector2u size;
                     size.x = evnt.size.width;
                     size.y = evnt.size.height;
-                    window.setSize(size);
+					environment.GetWindow()->setSize(size);
                     break;
                 }
                 default:
@@ -115,13 +116,13 @@ int main(void)
         }
         // Create base class vector and add child classes realization into it
         std::vector<Sort::Algorithm *> algs = std::vector<Sort::Algorithm *>();
-		Sort::BubbleSort bubble = Sort::BubbleSort(&currentElementLock, &currentElement);
+		Sort::BubbleSort bubble = Sort::BubbleSort(&environment);
         algs.push_back(static_cast< Sort::Algorithm * >(&bubble));
-        Sort::QuickSort quick = Sort::QuickSort(&currentElementLock, &currentElement);
+        Sort::QuickSort quick = Sort::QuickSort(&environment);
         algs.push_back(static_cast< Sort::Algorithm * >(&quick));
-		Sort::ShellSort shell = Sort::ShellSort(&currentElementLock, &currentElement);
+		Sort::ShellSort shell = Sort::ShellSort(&environment);
         algs.push_back(static_cast< Sort::Algorithm * >(&shell));
-		Sort::GnomeSort gnome = Sort::GnomeSort(&currentElementLock, &currentElement);
+		Sort::GnomeSort gnome = Sort::GnomeSort(&environment);
         algs.push_back(static_cast< Sort::Algorithm * >(&gnome));
         for (auto alg : algs) {
             _sortThread = std::thread(&Sort::Algorithm::Sort, alg, arr, ARRAY_SIZE);
@@ -132,7 +133,7 @@ int main(void)
         getchar();
         break;
 	}
-	shouldBeCancell = true;
+	*environment.GetCancelled() = true;
 	if (_renderThread.joinable())
 		_renderThread.join();
 

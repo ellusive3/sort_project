@@ -1,5 +1,6 @@
 #include <stdafx.h>
 #include <Graphics.hpp>
+#include <AppEnv.h>
 
 namespace Sort {
 
@@ -7,15 +8,13 @@ namespace Sort {
     public:
         Algorithm();
         Algorithm(std::string const & name);
+		Algorithm(Sort::AppEnv * _environment);
 		virtual void Sort(sf::RectangleShape ** array, size_t size) = 0;
 		const std::string & GetName() const { return algName; };
-		const int GetMergeCount() const { return mergeCount; }
-		const int GetAccessCount() const { return accessCount; }
+		const int GetMergeCount() const { return *environment->GetCurrentMergeCount(); }
+		const int GetAccessCount() const { return *environment->GetCurrentAccessCount(); }
 	protected:
-        int mergeCount;
-        int accessCount;
-		std::mutex * lock;
-		int * lockElement;
+		Sort::AppEnv * environment;
 		void PrintFinalInfo();
     private:
         std::string algName;
@@ -25,7 +24,7 @@ namespace Sort {
 	public:
 		BubbleSort() : Algorithm("Bubble Sort") {};
 		BubbleSort(std::string const & name) : Algorithm(name) {};
-		BubbleSort(std::mutex * _lock, int * _lockElement);
+		BubbleSort(Sort::AppEnv * _environment);
 		virtual void Sort(sf::RectangleShape ** array, size_t size) override final;
 	};
 
@@ -33,7 +32,7 @@ namespace Sort {
 	public:
 		QuickSort() : Algorithm("Bubble Sort") {};
 		QuickSort(std::string const & name) : Algorithm(name) {};
-		QuickSort(std::mutex * _lock, int * _lockElement);
+		QuickSort(Sort::AppEnv * _environment);
 		virtual void Sort(sf::RectangleShape ** array, size_t size) override final;
 	private:
 		void SortImpl(sf::RectangleShape ** array, size_t low, size_t high);
@@ -43,7 +42,7 @@ namespace Sort {
 	public:
 		ShellSort() : Algorithm("Shell Sort") {};
 		ShellSort(std::string const & name) : Algorithm(name) {};
-		ShellSort(std::mutex * _lock, int * _lockElement);
+		ShellSort(Sort::AppEnv * _environment);
 		virtual void Sort(sf::RectangleShape ** array, size_t size) override final;
 	};
 
@@ -51,7 +50,7 @@ namespace Sort {
 	public:
 		GnomeSort() : Algorithm("Gnome Sort") {};
 		GnomeSort(std::string const & name) : Algorithm(name) {};
-		GnomeSort(std::mutex * _lock, int * _lockElement);
+		GnomeSort(Sort::AppEnv * _environment);
 		virtual void Sort(sf::RectangleShape ** array, size_t size) override final;
 	};
 

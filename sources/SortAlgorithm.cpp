@@ -3,17 +3,24 @@
 
 namespace Sort {
 
-	Algorithm::Algorithm() :
-		algName("none"),
-		mergeCount(0),
-		accessCount(0)
-	{ }
+	Algorithm::Algorithm()
+	{ 
+		environment->SetCurrentAlgName("none");
+		environment->ResetAccessCount();
+		environment->ResetMergeCount();
+	}
 
-	Algorithm::Algorithm(std::string const & name) :
-		algName(name),
-		mergeCount(0),
-		accessCount(0)
-	{ }
+	Algorithm::Algorithm(std::string const & name)
+	{ 
+		environment->SetCurrentAlgName(name);
+		environment->ResetAccessCount();
+		environment->ResetMergeCount();
+	}
+
+	Algorithm::Algorithm(Sort::AppEnv * _environment)
+	{
+		this->environment = _environment;
+	}
 
 	void Algorithm::PrintFinalInfo()
 	{
@@ -24,32 +31,32 @@ namespace Sort {
 		printf("\n**********\n");
 	}
 
-	BubbleSort::BubbleSort(std::mutex * _lock, int * _lockElement) :
+	BubbleSort::BubbleSort(Sort::AppEnv * _environment) :
 		Algorithm("Bubble Sort")
 	{
-		this->lock = _lock;
-		this->lockElement = _lockElement;
+		assert(_environment != nullptr);
+		this->environment = _environment;
 	}
 
 	void BubbleSort::Sort(sf::RectangleShape ** array, size_t size)
 	{
 		for (size_t i = 0; i < size - 1; i++) {
 			for (size_t j = 0; j < size - i - 1; j++) {
-				mergeCount++;
-				assert(lock != nullptr);
-				assert(lockElement != nullptr);
+				environment->IncMergeCount();
+				assert(environment->GetLockElementMutex() != nullptr);
+				assert(environment->GetLockElement() != nullptr);
 				if ((int)array[j]->getSize().y < (int)array[j + 1]->getSize().y) {
 					sf::RectangleShape tmp = *array[j];
 					{
-						std::lock_guard<std::mutex> lock(*this->lock);
-						*this->lockElement = array[j]->getPosition().x;
+						std::lock_guard<std::mutex> lock(*environment->GetLockElementMutex());
+						*environment->GetLockElement() = array[j]->getPosition().x;
 					}
 					array[j]->setSize(sf::Vector2f(1, array[j + 1]->getSize().y));
 					array[j + 1]->setSize(sf::Vector2f(1, tmp.getSize().y));
-					accessCount++;
+					environment->IncAccessCount();
 					{
-						std::lock_guard<std::mutex> lock(*this->lock);
-						*this->lockElement = -1;
+						std::lock_guard<std::mutex> lock(*environment->GetLockElementMutex());
+						*environment->GetLockElement() = -1;
 					}
 				}
 				std::this_thread::sleep_for(std::chrono::nanoseconds(100));
@@ -58,11 +65,11 @@ namespace Sort {
 		this->PrintFinalInfo();
 	}
 
-	QuickSort::QuickSort(std::mutex * _lock, int * _lockElement) :
+	QuickSort::QuickSort(Sort::AppEnv * _environment) :
 		Algorithm("Quick Sort")
 	{
-		this->lock = _lock;
-		this->lockElement = _lockElement;
+		assert(_environment != nullptr);
+		this->environment = _environment;
 	}
 
 	void QuickSort::Sort(sf::RectangleShape ** array, size_t size)
@@ -82,21 +89,21 @@ namespace Sort {
 			while ((int)array[j]->getSize().y < partition)
 				j--;
 
-			mergeCount++;
+			environment->IncMergeCount();
 			if (i <= j) {
 				{
-					std::lock_guard<std::mutex> lock(*this->lock);
-					*this->lockElement = array[j]->getPosition().x;
+					std::lock_guard<std::mutex> lock(*environment->GetLockElementMutex());
+					*environment->GetLockElement() = array[j]->getPosition().x;
 				}
 				sf::RectangleShape tmp = *array[i];
 				array[i]->setSize(sf::Vector2f(1, array[j]->getSize().y));
 				array[j]->setSize(sf::Vector2f(1, tmp.getSize().y));
 				i++;
 				j--;
-				accessCount++;
+				environment->IncAccessCount();
 				{
-					std::lock_guard<std::mutex> lock(*this->lock);
-					*this->lockElement = -1;
+					std::lock_guard<std::mutex> lock(*environment->GetLockElementMutex());
+					*environment->GetLockElement() = -1;
 				}
 			}
 			std::this_thread::sleep_for(std::chrono::nanoseconds(50));
@@ -107,11 +114,11 @@ namespace Sort {
 		}
 	}
 
-	ShellSort::ShellSort(std::mutex * _lock, int * _lockElement) :
+	ShellSort::ShellSort(Sort::AppEnv * _environment) :
 		Algorithm("Shell Sort")
 	{
-		this->lock = _lock;
-		this->lockElement = _lockElement;
+		assert(_environment != nullptr);
+		this->environment = _environment;
 	}
 
 	void ShellSort::Sort(sf::RectangleShape ** array, size_t size)
@@ -133,17 +140,17 @@ namespace Sort {
 				// location for a[i] is found 
 				int j;
 				for (j = i; j >= gap && array[j - gap]->getSize().y < temp.getSize().y; j -= gap) {
-					mergeCount++;
+					environment->IncMergeCount();
 					{
-						std::lock_guard<std::mutex> lock(*this->lock);
-						*this->lockElement = array[j]->getPosition().x;
+						std::lock_guard<std::mutex> lock(*environment->GetLockElementMutex());
+						*environment->GetLockElement() = array[j]->getPosition().x;
 					}
-					accessCount++;
+					environment->IncAccessCount();
 					array[j]->setSize(sf::Vector2f(array[j]->getSize().x, array[j - gap]->getSize().y));
 					std::this_thread::sleep_for(std::chrono::nanoseconds(1000000));
 					{
-						std::lock_guard<std::mutex> lock(*this->lock);
-						*this->lockElement = -1;
+						std::lock_guard<std::mutex> lock(*environment->GetLockElementMutex());
+						*environment->GetLockElement() = -1;
 					}
 				}
 
@@ -154,11 +161,11 @@ namespace Sort {
 		this->PrintFinalInfo();
 	}
 
-	GnomeSort::GnomeSort(std::mutex * _lock, int * _lockElement) :
+	GnomeSort::GnomeSort(Sort::AppEnv * _environment) :
 		Algorithm("Gnome Sort")
 	{
-		this->lock = _lock;
-		this->lockElement = _lockElement;
+		assert(_environment != nullptr);
+		this->environment = _environment;
 	}
 
 	void GnomeSort::Sort(sf::RectangleShape ** array, size_t size)
@@ -168,22 +175,22 @@ namespace Sort {
 		while (index < size) {
 			if (index == 0)
 				index++;
-			mergeCount++;
+			environment->IncMergeCount();
 			if (array[index]->getSize().y <= array[index - 1]->getSize().y)
 				index++;
 			else {
-				accessCount++;
+				environment->IncAccessCount();
 				sf::RectangleShape tmp = *array[index];
 				{
-					std::lock_guard<std::mutex> lock(*this->lock);
-					*this->lockElement = array[index]->getPosition().x;
+					std::lock_guard<std::mutex> lock(*environment->GetLockElementMutex());
+					*environment->GetLockElement() = array[index]->getPosition().x;
 				}
 				array[index]->setSize(sf::Vector2f(1, array[index - 1]->getSize().y));
 				array[index - 1]->setSize(sf::Vector2f(1, tmp.getSize().y));
-				accessCount++;
+				environment->IncAccessCount();
 				{
-					std::lock_guard<std::mutex> lock(*this->lock);
-					*this->lockElement = -1;
+					std::lock_guard<std::mutex> lock(*environment->GetLockElementMutex());
+					*environment->GetLockElement() = -1;
 				}
 
 				index--;
