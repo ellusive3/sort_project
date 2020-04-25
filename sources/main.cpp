@@ -23,8 +23,8 @@
 
 #define WINDOW_WIDTH 1900
 #define WINDOW_HEIGHT 1900
-#define ARRAY_SIZE WINDOW_WIDTH / 4
-#define LINE_THICKNESS 4
+#define LINE_THICKNESS 8
+#define ARRAY_SIZE WINDOW_WIDTH / LINE_THICKNESS
 //#define DEBUG__
 
 /**
@@ -39,34 +39,43 @@ void UpdateWindowImpl(sf::RectangleShape ** array, size_t size, Sort::AppEnv & e
         merges count and accessec count
  */
 #ifndef WIN32
-/*
+	std::string internalAlgName;
+	std::string internalMergeCount;
+	std::string internalAccessCount;
+	{
+		std::lock_guard< std::mutex > lock(*environment.GetCurrentAlgMutex());
+		internalAlgName = std::string(environment.GetCurrentAlgName());
+		internalMergeCount = std::to_string(*environment.GetCurrentMergeCount());
+		internalAccessCount = std::to_string(*environment.GetCurrentAccessCount());
+	}
         sf::Font font;
         if (font.loadFromFile("fonts/ArialRegular.ttf")) {
             sf::Text algorihmName;
             algorihmName.setFont(font);
             algorihmName.setCharacterSize(WINDOW_HEIGHT * 0.04);
-            algorihmName.setFillColor(sf::Color::Red);
+            algorihmName.setFillColor(sf::Color::Cyan);
             algorihmName.setStyle(sf::Text::Bold);
-            algorihmName.setString("Bubble sort");
+            algorihmName.setString(internalAlgName.c_str());
             sf::Text mergesCount;
             mergesCount.setFont(font);
             mergesCount.setCharacterSize(WINDOW_WIDTH * 0.02);
-            mergesCount.setFillColor(sf::Color::Red);
-            mergesCount.setStyle(sf::Text::Underlined);
-            mergesCount.setString("10000");
+            mergesCount.setFillColor(sf::Color::Cyan);
+            mergesCount.setStyle(sf::Text::Bold);
+            std::string tmpStr = std::string("Merges count: " + internalMergeCount);
+            mergesCount.setString(tmpStr);
             mergesCount.setPosition(sf::Vector2f(algorihmName.getPosition().x, algorihmName.getPosition().y + algorihmName.getCharacterSize() + 10));
             sf::Text accessesCount;
             accessesCount.setFont(font);
             accessesCount.setCharacterSize(WINDOW_WIDTH * 0.02);
-            accessesCount.setFillColor(sf::Color::Red);
-            accessesCount.setStyle(sf::Text::Underlined);
-            accessesCount.setString("99999");
+            accessesCount.setFillColor(sf::Color::Cyan);
+            accessesCount.setStyle(sf::Text::Bold);
+    	    tmpStr = std::string("Accesses count: " + internalAccessCount);
+            accessesCount.setString(tmpStr);
             accessesCount.setPosition(sf::Vector2f(algorihmName.getPosition().x, mergesCount.getPosition().y + mergesCount.getCharacterSize() + 10));
             environment.GetWindow()->draw(algorihmName);
             environment.GetWindow()->draw(mergesCount);
             environment.GetWindow()->draw(accessesCount);
         }
-*/
 #endif
 		// По очереди перебираем все элементы массива и добавляем их на отрисовку
 		for (size_t i = 0; i < size; i++) {
@@ -157,12 +166,15 @@ int main(void)
         algs.push_back(static_cast< Sort::Algorithm * >(&shell));
 		Sort::GnomeSort gnome = Sort::GnomeSort(&environment);
         algs.push_back(static_cast< Sort::Algorithm * >(&gnome));
+    		Sort::InsertionSort insertion = Sort::InsertionSort(&environment);
+    	algs.push_back(static_cast< Sort::Algorithm * >(&insertion));
 	// По очереди запускаем все алгоритмы из вектора
         for (auto alg : algs) {
             _sortThread = std::thread(&Sort::Algorithm::Sort, alg, arr, ARRAY_SIZE);
             if (_sortThread.joinable())
                 _sortThread.join();
                 // Перемешиваем массив
+	    std::this_thread::sleep_for(std::chrono::milliseconds(300));
             RefreshArray(arr, ARRAY_SIZE);
         }
         break;

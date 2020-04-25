@@ -222,4 +222,39 @@ namespace Sort {
 	*/
 	virtual void Sort(sf::RectangleShape ** array, size_t size) override final;
     };
+    
+    /**
+	@short
+	    ƒеклараци€ класса алгоритма сортировки массива вставками
+    */
+    class InsertionSort : public Algorithm {
+	public:
+	/**
+	    @short
+		 онструктор по умолчанию
+	*/
+	InsertionSort() : Algorithm("Insertion Sort") {};
+	
+	/**
+	    @short
+		 онструктор с параметрами
+	    @param[in] name - им€ алгоритма сортировки
+	*/
+	InsertionSort(std::string const & name) : Algorithm(name) {};
+	
+	/**
+	    @short
+		 онструктор с параметрами (перегрузка)
+	    @param[in] _environment - указатель на окружение приложени€
+	*/
+	InsertionSort(Sort::AppEnv * _environment);
+	
+	/**
+	    @short
+		ѕереопределенна€ функци€ сортировки массива
+	    @param[in] array - указатель на массив значений дл€ сортировки
+	    @param[in] size - размер массива значений
+	*/
+	virtual void Sort(sf::RectangleShape ** array, size_t size) override final;
+    };
 } // Sort

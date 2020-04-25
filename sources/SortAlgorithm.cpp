@@ -45,6 +45,9 @@ namespace Sort {
 
 	void BubbleSort::Sort(sf::RectangleShape ** array, size_t size)
 	{
+		environment->ResetMergeCount();
+		environment->ResetAccessCount();
+		environment->SetCurrentAlgName(this->GetName());
 		for (size_t i = 0; i < size - 1; i++) {
 			for (size_t j = 0; j < size - i - 1; j++) {
 				environment->IncMergeCount();
@@ -82,6 +85,9 @@ namespace Sort {
 
 	void QuickSort::Sort(sf::RectangleShape ** array, size_t size)
 	{
+	    environment->ResetMergeCount();
+	    environment->ResetAccessCount();
+	    environment->SetCurrentAlgName(this->GetName());
 	    SortImpl(array, 0, size - 1);
 	    this->PrintFinalInfo();
 	}
@@ -134,6 +140,9 @@ namespace Sort {
 
 	void ShellSort::Sort(sf::RectangleShape ** array, size_t size)
 	{
+		environment->ResetMergeCount();
+		environment->ResetAccessCount();
+		environment->SetCurrentAlgName(this->GetName());
 		// Start with a big gap, then reduce the gap 
 		for (int gap = size / 2; gap > 0; gap /= 2)
 		{
@@ -184,6 +193,9 @@ namespace Sort {
 
 	void GnomeSort::Sort(sf::RectangleShape ** array, size_t size)
 	{
+		environment->ResetMergeCount();
+		environment->ResetAccessCount();
+		environment->SetCurrentAlgName(this->GetName());
 		int index = 0;
 
 		while (index < size) {
@@ -212,6 +224,40 @@ namespace Sort {
 			}
 		}
 		this->PrintFinalInfo();
+	}
+	
+	InsertionSort::InsertionSort(Sort::AppEnv * _environment) :
+	    Algorithm("Insertion Sort")
+	{
+	    assert(_environment != nullptr);
+	    this->environment = _environment;
+	    environment->SetCurrentAlgName("Insertion Sort");
+	    environment->ResetMergeCount();
+	    environment->ResetAccessCount();
+	}
+	
+	void InsertionSort::Sort(sf::RectangleShape ** array, size_t size)
+	{
+	    environment->SetCurrentAlgName(this->GetName());
+	    environment->ResetMergeCount();
+	    environment->ResetAccessCount();
+	    int key, j;
+	    for (int i = 1; i < size; i++) {
+		environment->IncAccessCount();
+		key = array[i]->getSize().y;
+		j = i - 1;
+		environment->IncAccessCount();
+		environment->IncMergeCount();
+		while (j >= 0 && array[j]->getSize().y < key) {
+		    environment->IncAccessCount();
+		    array[j + 1]->setSize(sf::Vector2f(array[j + 1]->getSize().x, array[j]->getSize().y));
+		    j--;
+		}
+		environment->IncAccessCount();
+		array[j + 1]->setSize(sf::Vector2f(array[j + 1]->getSize().x, key));
+		std::this_thread::sleep_for(std::chrono::nanoseconds(10000));
+	    }
+	    this->PrintFinalInfo();
 	}
 
 } // Sort
