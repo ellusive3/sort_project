@@ -1,8 +1,8 @@
 /**
     @file
-	Основной файл программы.
-	Здесь происходит создание окна а также потока для его отрисовки;
-	Содание объектов алгоритмов сортировки и поочередного их запуска;
+	РћСЃРЅРѕРІРЅРѕР№ С„Р°Р№Р» РїСЂРѕРіСЂР°РјРјС‹.
+	Р—РґРµСЃСЊ РїСЂРѕРёСЃС…РѕРґРёС‚ СЃРѕР·РґР°РЅРёРµ РѕРєРЅР° Р° С‚Р°РєР¶Рµ РїРѕС‚РѕРєР° РґР»СЏ РµРіРѕ РѕС‚СЂРёСЃРѕРІРєРё;
+	РЎРѕРґР°РЅРёРµ РѕР±СЉРµРєС‚РѕРІ Р°Р»РіРѕСЂРёС‚РјРѕРІ СЃРѕСЂС‚РёСЂРѕРІРєРё Рё РїРѕРѕС‡РµСЂРµРґРЅРѕРіРѕ РёС… Р·Р°РїСѓСЃРєР°;
     @author
 	Zyukov Alexander Vadimovich (ellusive)
     @date
@@ -28,7 +28,7 @@
 //#define DEBUG__
 
 /**
-    Функция для отрисовки массива элементов в окне программы
+    Р¤СѓРЅРєС†РёСЏ РґР»СЏ РѕС‚СЂРёСЃРѕРІРєРё РјР°СЃСЃРёРІР° СЌР»РµРјРµРЅС‚РѕРІ РІ РѕРєРЅРµ РїСЂРѕРіСЂР°РјРјС‹
 */
 void UpdateWindowImpl(sf::RectangleShape ** array, size_t size, Sort::AppEnv & environment)
 {
@@ -77,38 +77,38 @@ void UpdateWindowImpl(sf::RectangleShape ** array, size_t size, Sort::AppEnv & e
             environment.GetWindow()->draw(accessesCount);
         }
 #endif
-		// По очереди перебираем все элементы массива и добавляем их на отрисовку
+		// РџРѕ РѕС‡РµСЂРµРґРё РїРµСЂРµР±РёСЂР°РµРј РІСЃРµ СЌР»РµРјРµРЅС‚С‹ РјР°СЃСЃРёРІР° Рё РґРѕР±Р°РІР»СЏРµРј РёС… РЅР° РѕС‚СЂРёСЃРѕРІРєСѓ
 		for (size_t i = 0; i < size; i++) {
 			{
-				// Обязательно должен быть мьютекс для доступа к текущему элементу
-				// сортировки
+				// РћР±СЏР·Р°С‚РµР»СЊРЅРѕ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ РјСЊСЋС‚РµРєСЃ РґР»СЏ РґРѕСЃС‚СѓРїР° Рє С‚РµРєСѓС‰РµРјСѓ СЌР»РµРјРµРЅС‚Сѓ
+				// СЃРѕСЂС‚РёСЂРѕРІРєРё
 				assert(environment.GetLockElementMutex() != nullptr);
 				std::lock_guard<std::mutex> lock(*environment.GetLockElementMutex());
 				auto tmp = (*(array + i));
-				// Обязательно должен быть указатель на текущий элемент сортировки
+				// РћР±СЏР·Р°С‚РµР»СЊРЅРѕ РґРѕР»Р¶РµРЅ Р±С‹С‚СЊ СѓРєР°Р·Р°С‚РµР»СЊ РЅР° С‚РµРєСѓС‰РёР№ СЌР»РµРјРµРЅС‚ СЃРѕСЂС‚РёСЂРѕРІРєРё
 				assert(environment.GetLockElement() != nullptr);
-				// Проверяем нужно ли красить линию красным (если этот элемент сейчас в обработке)
+				// РџСЂРѕРІРµСЂСЏРµРј РЅСѓР¶РЅРѕ Р»Рё РєСЂР°СЃРёС‚СЊ Р»РёРЅРёСЋ РєСЂР°СЃРЅС‹Рј (РµСЃР»Рё СЌС‚РѕС‚ СЌР»РµРјРµРЅС‚ СЃРµР№С‡Р°СЃ РІ РѕР±СЂР°Р±РѕС‚РєРµ)
 				if (*environment.GetLockElement() != -1 && (int)tmp->getPosition().x == *environment.GetLockElement())
 					tmp->setFillColor(sf::Color::Red);
 				else
 					tmp->setFillColor(sf::Color::White);
 			}
-			// Рисуем линию в окне
+			// Р РёСЃСѓРµРј Р»РёРЅРёСЋ РІ РѕРєРЅРµ
 			environment.GetWindow()->draw(*(*(array + i)));
 		}
-		// Отображаем все элементы из буффера в окно
+		// РћС‚РѕР±СЂР°Р¶Р°РµРј РІСЃРµ СЌР»РµРјРµРЅС‚С‹ РёР· Р±СѓС„С„РµСЂР° РІ РѕРєРЅРѕ
 		environment.GetWindow()->display();
 	}
-    // Отдаем управление окном родительскому потоку
+    // РћС‚РґР°РµРј СѓРїСЂР°РІР»РµРЅРёРµ РѕРєРЅРѕРј СЂРѕРґРёС‚РµР»СЊСЃРєРѕРјСѓ РїРѕС‚РѕРєСѓ
     environment.GetWindow()->setActive(false);
 }
 
 /**
-    Функция для обновления рандомных значений массива
+    Р¤СѓРЅРєС†РёСЏ РґР»СЏ РѕР±РЅРѕРІР»РµРЅРёСЏ СЂР°РЅРґРѕРјРЅС‹С… Р·РЅР°С‡РµРЅРёР№ РјР°СЃСЃРёРІР°
 */
 void RefreshArray(sf::RectangleShape ** array, size_t size) {
 	for (size_t i = 0; i < size; i++)
-		// Добавляем линию с рандомной высотой в пределах окна
+		// Р”РѕР±Р°РІР»СЏРµРј Р»РёРЅРёСЋ СЃ СЂР°РЅРґРѕРјРЅРѕР№ РІС‹СЃРѕС‚РѕР№ РІ РїСЂРµРґРµР»Р°С… РѕРєРЅР°
 		array[i]->setSize(sf::Vector2f(1, -std::rand() % WINDOW_HEIGHT));
 }
 
@@ -117,26 +117,26 @@ int main(void)
 #if defined(_WIN32) || defined(__WIN32__) || defined(WIN32)
 	::ShowWindow(::GetConsoleWindow(), SW_HIDE);
 #endif
-	// Поток для отрисовки окна
+	// РџРѕС‚РѕРє РґР»СЏ РѕС‚СЂРёСЃРѕРІРєРё РѕРєРЅР°
 	std::thread _renderThread;
-	// Поток для сортировки массива
+	// РџРѕС‚РѕРє РґР»СЏ СЃРѕСЂС‚РёСЂРѕРІРєРё РјР°СЃСЃРёРІР°
 	std::thread _sortThread;
-	// Окружение приложения
+	// РћРєСЂСѓР¶РµРЅРёРµ РїСЂРёР»РѕР¶РµРЅРёСЏ
 	Sort::AppEnv environment(WINDOW_WIDTH, WINDOW_HEIGHT);
-	// Массив значений
+	// РњР°СЃСЃРёРІ Р·РЅР°С‡РµРЅРёР№
 	sf::RectangleShape * arr[ARRAY_SIZE];
-	// Заполняем массив рандомными (в пределах высоты окна) значениями
+	// Р—Р°РїРѕР»РЅСЏРµРј РјР°СЃСЃРёРІ СЂР°РЅРґРѕРјРЅС‹РјРё (РІ РїСЂРµРґРµР»Р°С… РІС‹СЃРѕС‚С‹ РѕРєРЅР°) Р·РЅР°С‡РµРЅРёСЏРјРё
 	for (size_t i = 0; i < ARRAY_SIZE; i++) {
-		// Создаем новый прямоугольник (выделяем память)
+		// РЎРѕР·РґР°РµРј РЅРѕРІС‹Р№ РїСЂСЏРјРѕСѓРіРѕР»СЊРЅРёРє (РІС‹РґРµР»СЏРµРј РїР°РјСЏС‚СЊ)
 		arr[i] = new sf::RectangleShape(sf::Vector2f(LINE_THICKNESS, -std::rand() % WINDOW_HEIGHT));
 		std::cout << arr[i]->getSize().y << " ";
 		arr[i]->setFillColor(sf::Color::White);
-		// Указываем положение с учетом толщины линии
+		// РЈРєР°Р·С‹РІР°РµРј РїРѕР»РѕР¶РµРЅРёРµ СЃ СѓС‡РµС‚РѕРј С‚РѕР»С‰РёРЅС‹ Р»РёРЅРёРё
 		arr[i]->setPosition(i * LINE_THICKNESS, WINDOW_HEIGHT);
 	}
-	// Отдаем управление окном в поток для отрисовки
+	// РћС‚РґР°РµРј СѓРїСЂР°РІР»РµРЅРёРµ РѕРєРЅРѕРј РІ РїРѕС‚РѕРє РґР»СЏ РѕС‚СЂРёСЃРѕРІРєРё
 	environment.GetWindow()->setActive(false);
-	// Создаем и запускаем поток для отрисовки окна
+	// РЎРѕР·РґР°РµРј Рё Р·Р°РїСѓСЃРєР°РµРј РїРѕС‚РѕРє РґР»СЏ РѕС‚СЂРёСЃРѕРІРєРё РѕРєРЅР°
 	_renderThread = std::thread(&UpdateWindowImpl, arr, (size_t) ARRAY_SIZE, std::ref(environment));
 	while (environment.GetWindow()->isOpen()) {
     	    sf::Event evnt;
@@ -169,25 +169,29 @@ int main(void)
         algs.push_back(static_cast< Sort::Algorithm * >(&gnome));
     		Sort::InsertionSort insertion = Sort::InsertionSort(&environment);
     	algs.push_back(static_cast< Sort::Algorithm * >(&insertion));
+<<<<<<< HEAD
     		Sort::TreeSort tree = Sort::TreeSort(&environment);
     	algs.push_back(static_cast< Sort::Algorithm * >(&tree));
 	// По очереди запускаем все алгоритмы из вектора
+=======
+	// РџРѕ РѕС‡РµСЂРµРґРё Р·Р°РїСѓСЃРєР°РµРј РІСЃРµ Р°Р»РіРѕСЂРёС‚РјС‹ РёР· РІРµРєС‚РѕСЂР°
+>>>>>>> 83712a81ee3e84860e7f7cd62db080e52130bc96
         for (auto alg : algs) {
             _sortThread = std::thread(&Sort::Algorithm::Sort, alg, arr, ARRAY_SIZE);
             if (_sortThread.joinable())
                 _sortThread.join();
-                // Перемешиваем массив
+                // РџРµСЂРµРјРµС€РёРІР°РµРј РјР°СЃСЃРёРІ
 	    std::this_thread::sleep_for(std::chrono::milliseconds(300));
             RefreshArray(arr, ARRAY_SIZE);
         }
         break;
 	}
 	*environment.GetCancelled() = true;
-	// Дожидаемся пока завершится поток для отрисовки
+	// Р”РѕР¶РёРґР°РµРјСЃСЏ РїРѕРєР° Р·Р°РІРµСЂС€РёС‚СЃСЏ РїРѕС‚РѕРє РґР»СЏ РѕС‚СЂРёСЃРѕРІРєРё
 	if (_renderThread.joinable())
 		_renderThread.join();
 
-	// Само собой нужно почистить память
+	// РЎР°РјРѕ СЃРѕР±РѕР№ РЅСѓР¶РЅРѕ РїРѕС‡РёСЃС‚РёС‚СЊ РїР°РјСЏС‚СЊ
 	for (size_t i = 0; i < ARRAY_SIZE; i++) {
 		delete(arr[i]);
 	}
