@@ -257,4 +257,54 @@ namespace Sort {
 	*/
 	virtual void Sort(sf::RectangleShape ** array, size_t size) override final;
     };
+    
+    /**
+	@short
+	    Декларация класса алгоритма сортировки деревом
+    */
+    class TreeSort : public Algorithm {
+	public:
+	    /**
+		@short
+		    Конструктор по умолчанию
+	    */
+	    TreeSort() : Algorithm("Tree Sort") {}
+	    
+	    /**
+		@short
+		    Конструктор с параметрами
+		@param[in] name - имя алгоритма сортировки
+	    */
+	    TreeSort(std::string const & name) : Algorithm(name) {}
+	    
+	    /**
+		@short
+		    Конструктор с параметрами (перегрузка)
+		@param[in] _environment - указатель на окружение приложения
+	    */
+	    TreeSort(Sort::AppEnv * _environment);
+	    
+	    /**
+		@short
+		    Переопределенная функция сортировки массива
+		@param[in] array - указатель на массив значений для сортировки
+		@param[in] size - размер массива значений
+	    */
+	    virtual void Sort(sf::RectangleShape ** array, size_t size) override final;
+
+	    /**
+		@short
+		    Описание узла дерева
+	    */
+	    struct Node {
+		// Значение
+		int key;
+		// Указатель на левый и правый узлы
+		struct Node *left, *right;
+	    };
+	    	    
+	    static Node * NewNode(int item);
+	    static Node * Insert(Node * node, int key);
+	    static void StoreSorted(Node * root, sf::RectangleShape ** array, int & i);
+    };
 } // Sort

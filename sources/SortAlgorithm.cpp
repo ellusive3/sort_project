@@ -53,7 +53,9 @@ namespace Sort {
 				environment->IncMergeCount();
 				assert(environment->GetLockElementMutex() != nullptr);
 				assert(environment->GetLockElement() != nullptr);
+				environment->IncAccessCount();
 				if ((int)array[j]->getSize().y < (int)array[j + 1]->getSize().y) {
+					environment->IncAccessCount();
 					sf::RectangleShape tmp = *array[j];
 					{
 						std::lock_guard<std::mutex> lock(*environment->GetLockElementMutex());
@@ -96,13 +98,18 @@ namespace Sort {
 	{
 		int i = low;
 		int j = high;
+		environment->IncAccessCount();
 		int partition = (int)array[(i + j) / 2]->getSize().y;
 		while (i <= j) {
-			while ((int)array[i]->getSize().y > partition)
+			while ((int)array[i]->getSize().y > partition) {
 				i++;
-			while ((int)array[j]->getSize().y < partition)
+				environment->IncAccessCount();
+			}
+			while ((int)array[j]->getSize().y < partition) {
 				j--;
-
+				environment->IncAccessCount();
+			}
+				
 			environment->IncMergeCount();
 			if (i <= j) {
 				{
@@ -110,7 +117,9 @@ namespace Sort {
 					*environment->GetLockElement() = array[j]->getPosition().x;
 				}
 				sf::RectangleShape tmp = *array[i];
+				environment->IncAccessCount();
 				array[i]->setSize(sf::Vector2f(1, array[j]->getSize().y));
+				environment->IncAccessCount();
 				array[j]->setSize(sf::Vector2f(1, tmp.getSize().y));
 				i++;
 				j--;
@@ -152,6 +161,7 @@ namespace Sort {
 			// gap sorted  
 			for (int i = gap; i < size; i++)
 			{
+				environment->IncAccessCount();
 				// add a[i] to the elements that have been gap sorted 
 				// save a[i] in temp and make a hole at position i 
 				sf::RectangleShape temp = *array[i];
@@ -173,7 +183,7 @@ namespace Sort {
 						*environment->GetLockElement() = -1;
 					}
 				}
-
+				environment->IncAccessCount();
 				//  put temp (the original a[i]) in its correct location 
 				array[j]->setSize(sf::Vector2f(array[j]->getSize().x, temp.getSize().y));
 			}
@@ -212,6 +222,7 @@ namespace Sort {
 					*environment->GetLockElement() = array[index]->getPosition().x;
 				}
 				array[index]->setSize(sf::Vector2f(1, array[index - 1]->getSize().y));
+				environment->IncAccessCount();
 				array[index - 1]->setSize(sf::Vector2f(1, tmp.getSize().y));
 				environment->IncAccessCount();
 				{
@@ -255,8 +266,60 @@ namespace Sort {
 		}
 		environment->IncAccessCount();
 		array[j + 1]->setSize(sf::Vector2f(array[j + 1]->getSize().x, key));
-		std::this_thread::sleep_for(std::chrono::nanoseconds(10000));
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	    }
+	    this->PrintFinalInfo();
+	}
+	
+	TreeSort::TreeSort(Sort::AppEnv * _environment) :
+	    Algorithm("Tree Sort")
+	{
+	    this->environment = _environment;
+	    environment->SetCurrentAlgName("Tree Sort");
+	    environment->ResetMergeCount();
+	    environment->ResetAccessCount();
+	}
+	
+	TreeSort::Node * TreeSort::NewNode(int item)
+	{
+	    Node * temp = new Node;
+	    temp->key = item;
+	    temp->left = temp->right = nullptr;
+	    return temp;
+	}
+	
+	TreeSort::Node * TreeSort::Insert(TreeSort::Node * node, int key)
+	{
+	    if (node == nullptr) return TreeSort::NewNode(key);
+	    if (key > node->key)
+		node->left = TreeSort::Insert(node->left, key);
+	    else if(key < node->key)
+		node->right = TreeSort::Insert(node->right, key);
+		
+	    return node;
+	}
+	
+	void TreeSort::StoreSorted(TreeSort::Node * root, sf::RectangleShape ** array, int & i)
+	{
+	    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+	    if (root != nullptr) {
+		TreeSort::StoreSorted(root->left, array, i);
+		array[i]->setSize(sf::Vector2f(array[i]->getSize().x, root->key));
+		i++;
+		TreeSort::StoreSorted(root->right, array, i);	
+	    }
+	}
+	
+	void TreeSort::Sort(sf::RectangleShape ** array, size_t size)
+	{
+	    environment->SetCurrentAlgName(this->GetName());
+	    TreeSort::Node * root = nullptr;
+	    root = Insert(root, array[0]->getSize().y);
+	    for (int i = 0; i < size; i++)
+		root = Insert(root, array[i]->getSize().y);
+	
+	    int i = 0;
+	    StoreSorted(root, array, i);
 	    this->PrintFinalInfo();
 	}
 

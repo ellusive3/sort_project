@@ -21,8 +21,8 @@
 #endif
 
 
-#define WINDOW_WIDTH 1900
-#define WINDOW_HEIGHT 1900
+#define WINDOW_WIDTH 1000
+#define WINDOW_HEIGHT 1000
 #define LINE_THICKNESS 8
 #define ARRAY_SIZE WINDOW_WIDTH / LINE_THICKNESS
 //#define DEBUG__
@@ -129,6 +129,7 @@ int main(void)
 	for (size_t i = 0; i < ARRAY_SIZE; i++) {
 		// Создаем новый прямоугольник (выделяем память)
 		arr[i] = new sf::RectangleShape(sf::Vector2f(LINE_THICKNESS, -std::rand() % WINDOW_HEIGHT));
+		std::cout << arr[i]->getSize().y << " ";
 		arr[i]->setFillColor(sf::Color::White);
 		// Указываем положение с учетом толщины линии
 		arr[i]->setPosition(i * LINE_THICKNESS, WINDOW_HEIGHT);
@@ -168,6 +169,8 @@ int main(void)
         algs.push_back(static_cast< Sort::Algorithm * >(&gnome));
     		Sort::InsertionSort insertion = Sort::InsertionSort(&environment);
     	algs.push_back(static_cast< Sort::Algorithm * >(&insertion));
+    		Sort::TreeSort tree = Sort::TreeSort(&environment);
+    	algs.push_back(static_cast< Sort::Algorithm * >(&tree));
 	// По очереди запускаем все алгоритмы из вектора
         for (auto alg : algs) {
             _sortThread = std::thread(&Sort::Algorithm::Sort, alg, arr, ARRAY_SIZE);
