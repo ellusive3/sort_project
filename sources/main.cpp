@@ -1,12 +1,12 @@
 /**
     @file
-	Основной файл программы.
-	Здесь происходит создание окна а также потока для его отрисовки;
-	Содание объектов алгоритмов сортировки и поочередного их запуска;
+		Основной файл программы.
+		Здесь происходит создание окна а также потока для его отрисовки;
+		Содание объектов алгоритмов сортировки и поочередного их запуска;
     @author
-	Zyukov Alexander Vadimovich (ellusive)
+		Zyukov Alexander Vadimovich (ellusive)
     @date
-	2020 April 25
+		2020 April 25
 */
 #include <stdafx.h>
 #include <Graphics.hpp>
@@ -169,13 +169,9 @@ int main(void)
         algs.push_back(static_cast< Sort::Algorithm * >(&gnome));
     		Sort::InsertionSort insertion = Sort::InsertionSort(&environment);
     	algs.push_back(static_cast< Sort::Algorithm * >(&insertion));
-<<<<<<< HEAD
     		Sort::TreeSort tree = Sort::TreeSort(&environment);
     	algs.push_back(static_cast< Sort::Algorithm * >(&tree));
-	// �� ������� ��������� ��� ��������� �� �������
-=======
 	// По очереди запускаем все алгоритмы из вектора
->>>>>>> 83712a81ee3e84860e7f7cd62db080e52130bc96
         for (auto alg : algs) {
             _sortThread = std::thread(&Sort::Algorithm::Sort, alg, arr, ARRAY_SIZE);
             if (_sortThread.joinable())
